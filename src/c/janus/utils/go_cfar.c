@@ -141,8 +141,11 @@ janus_go_cfar_first_detection(janus_go_cfar_t go_cfar, janus_utils_fifo_t fifo)
       go_cfar->sum_iterations += go_cfar->hn - mov_avg_size;
     }
 
-    // avoiding overlap between left and right sums 
-    peek_size_bytes = JANUS_MIN((go_cfar->hn + go_cfar->hg + 1) * sizeof(janus_real_t), fifo_size_bytes);
+    // avoiding overlap between left and right sums; the peek starts k cells
+    // in, so cap it to what is there, or the tail of buffer keeps stale cells
+    // of the previous packet and the running sums drift up (receiver deaf)
+    peek_size_bytes = JANUS_MIN((go_cfar->hn + go_cfar->hg + 1) * sizeof(janus_real_t),
+                                fifo_size_bytes - go_cfar->k * sizeof(janus_real_t));
 
     // adding peek_offset_bytes to skip data might be already in buffer
     janus_utils_fifo_peek_offset(fifo, (char*) (go_cfar->buffer) + peek_offset_bytes,
