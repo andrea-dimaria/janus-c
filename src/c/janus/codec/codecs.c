@@ -66,7 +66,7 @@ janus_codecs_reset(janus_codecs_t codecs)
   {
     for (int j = 0; j != JANUS_APP_COUNT; ++j)
     {
-      if (plugins[i][i] != NULL)
+      if (plugins[i][j] != NULL)
       {
         janus_plugin_close(plugins[i][j]);
       }

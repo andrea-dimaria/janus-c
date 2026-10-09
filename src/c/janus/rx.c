@@ -206,8 +206,11 @@ rx_data(janus_rx_t rx, janus_packet_t packet, janus_rx_state_t state)
           {
             janus_uint64_t reservation_counter;
             janus_rx_reset(rx);
-            reservation_counter = (janus_uint64_t)(rx->maximum_detection_time + tx_interval) * rx->bband_fs;
-            rx->blackout_downcounter = (unsigned)(reservation_counter - rx->bband_time_counter);
+            // convert to samples before truncating, and never wrap below zero:
+            // an underflow made the receiver deaf for hours
+            reservation_counter = (janus_uint64_t)((rx->maximum_detection_time + tx_interval) * rx->bband_fs);
+            rx->blackout_downcounter = reservation_counter > rx->bband_time_counter ?
+              (unsigned)(reservation_counter - rx->bband_time_counter) : 0;
             fprintf(stderr, "Reservation start time %f\n", rx->maximum_detection_time);
             fprintf(stderr, "Reservation end time   %f\n", rx->maximum_detection_time + tx_interval);
           }
